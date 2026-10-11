@@ -1,0 +1,3 @@
+- insert:
+    - id: plugin-diagnostics
+      name: dsh-plugin-diagnostics
