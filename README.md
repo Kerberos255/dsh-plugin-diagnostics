@@ -1,15 +1,34 @@
-# DSH Plugin Diagnostics
+# Plugin Diagnostics for DeepSeek Harness
 
-Optional privacy-restricted diagnostics for DeepSeek Harness plugins. Records JSONL lifecycle, tool outcomes and bounded error metadata for supported DSH plugins. It never includes chat transcripts, submitted answers, HTTP payloads, user identity, credentials, or arbitrary stack traces.
+[简体中文](README.zh-CN.md) · [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) · [Security](SECURITY.md)
 
-## Operation
+An **optional, privacy-restricted JSONL diagnostics service** for DSH plugins. It helps troubleshoot plugin startup, supported tool outcomes, scheduled-job changes and bounded failure metadata without collecting conversation text or credentials.
 
-Add this bundle to the DSH host plugin list. Other plugins may opt in via the pluginDiagnostics service. Existing plugins continue to run without it.
+## What it records
 
-By default, records are grouped by plugin under the DSH home directory plugin-diagnostics/logs. Each plugin receives at most two 1 MiB files per day, and files older than 14 days are automatically pruned. Log write errors do not interrupt tasks.
+- Lifecycle events for supported plugins, including startup and stop.
+- Allowlisted event names and metadata such as status, duration, safe error codes and recognized plugin tool names.
+- Errors that supported plugins explicitly report through `pluginDiagnostics.record(...)`.
+- A schedule-change notification, but **not** the schedule contents or task instructions.
 
-Use the record(plugin, level, event, details) service method with controlled plugin identifiers, fixed event names and allowlisted metadata. Runtime captures tool names for recognized plugin tool calls only. It does not capture tool arguments, model output, or user messages.
+It does **not** log user messages, submitted answers, prompts, model responses, tool arguments, HTTP bodies, tokens, secret values, arbitrary stack traces or user identities. Plugins that do not emit diagnostics remain functional.
 
-## Development
+## Installation and logs
 
-Run node --test tests/*.test.mjs. Live integration requires a supported DeepSeek Harness host. The repository does not include any user settings, logs or credentials.
+Requires a compatible DSH host with the peer services declared in [package.json](package.json). Install into the profile that hosts your plugins (for example, `desktop`):
+
+```sh
+dsh plugin --profile desktop add github:Kerberos255/dsh-plugin-diagnostics
+```
+
+Restart the host after changing plugin code. Other supported plugins detect the `pluginDiagnostics` service when present; there is **no separate dashboard or mandatory settings page**.
+
+Log directory: `DSH_HOME/plugin-diagnostics/logs/<plugin-name>/YYYY-MM-DD.N.jsonl`. Files are limited to **two 1 MiB parts per plugin per day**; entries older than **14 days** are periodically removed. Full or unwritable log destinations silently drop diagnostic entries instead of blocking user tasks.
+
+## Troubleshooting and limitations
+
+Check whether the plugin and its dependencies loaded before expecting new logs. A previous-failures count is historical, **not** evidence that every count was a new error. Diagnostics are deliberately sparse; they cannot reconstruct a session, explain arbitrary model behavior, or replace live host/platform tests.
+
+Review [SECURITY.md](SECURITY.md) before sharing logs; even allowlisted metadata may reveal operational timing. Run `npm test` for portable logger tests. Packaging can be checked with `npm pack --dry-run`; compatibility with a real DSH host must be tested separately.
+
+MIT licensed. See [LICENSE](LICENSE).
