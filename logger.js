@@ -8,6 +8,7 @@ const LEVELS=new Set(['info','warn','error']);
 const EVENT=/^[a-z][a-z0-9._-]{0,63}$/;
 const ID=/^dsh-[a-z0-9-]{2,60}$/;
 const TOOL=/^[a-z][a-z0-9_-]{0,60}$/;
+const VERSION=/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 const SAFE_CODE=/^(?:[0-9]{3,6}|[A-Z][A-Z0-9_]{1,31}|[a-z]+(?:-[a-z]+){0,2})$/;
 const values=new Set(['ok','failed','cancelled','disabled','active','closed','timeout','running','completed','unknown','interrupted','pending','skipped']);
 const safeNumber=x=>typeof x==='number'&&Number.isFinite(x)?Math.max(0,Math.min(86400000,Math.round(x))):undefined;
@@ -31,6 +32,7 @@ export function makeRecord(plugin,level,event,details={},now=new Date()){
     const n=safeNumber(details[name]);if(n!==undefined)record[name]=n;
   }
   if(SAFE_CODE.test(details.code??''))record.code=details.code;
+  for(const name of ['runtimeVersion','testedRuntime'])if(VERSION.test(details[name]??''))record[name]=details[name];
   if(pluginForTool(details.tool)===plugin)record.tool=details.tool;
   if(values.has(details.state))record.state=details.state;
   if(details.provider==='discord'||details.provider==='feishu')record.provider=details.provider;

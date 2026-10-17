@@ -1,14 +1,17 @@
 import path from 'node:path';
 import { TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol';
 import { DiagnosticsWriter,pluginForTool } from './logger.js';
+import { COMPATIBILITY_PLUGIN_NAMES, findUntestedPlugins, readInstalledPluginManifest } from './compatibility.js';
 
 export default class PluginDiagnostics extends TypertRemoteService{
   static inject=['dshHomePath'];
   constructor(ctx){
     super(ctx,'pluginDiagnostics');
     this.writer=new DiagnosticsWriter(ctx.dshHomePath('plugin-diagnostics','logs'));
+    this.profileNodeModules=ctx.dshHomePath('profiles','desktop','node_modules');
     this.started=new Set();
     this.record('dsh-plugin-diagnostics','info','observer.started',{state:'active'});
+    void this.auditCompatibility();
     // Observe other service lifecycles from the root scope. Plugin-side
     // callbacks may not see this diagnostic service across isolated scopes.
     for(const [service,plugin] of [
@@ -59,6 +62,22 @@ export default class PluginDiagnostics extends TypertRemoteService{
       this.record('dsh-plugin-diagnostics','info','observer.stopped',{state:'closed'});
       await this.writer.close();
     });
+  }
+  async auditCompatibility(){
+    let runtimeVersion;
+    try{
+      const appBoot=await import('@deepseek-ai/dsh-app-boot');
+      runtimeVersion=appBoot.getDshRuntimeVersion();
+    }catch{
+      this.record('dsh-plugin-diagnostics','warn','compatibility.runtime-version-unavailable',{state:'unknown'});
+      return;
+    }
+    const manifests=COMPATIBILITY_PLUGIN_NAMES.map(name=>readInstalledPluginManifest(name,this.profileNodeModules)).filter(Boolean);
+    for(const issue of findUntestedPlugins(manifests,runtimeVersion)){
+      this.record(issue.name,'warn','compatibility.runtime-not-tested',{
+        state:'unknown',runtimeVersion:issue.runtimeVersion,testedRuntime:issue.testedRuntime
+      });
+    }
   }
   record(plugin,level,event,details){this.writer.record(plugin,level,event,details);}
   start(plugin){
