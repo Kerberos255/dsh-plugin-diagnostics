@@ -27,7 +27,7 @@ test('tool attribution is deterministic and ignores unknown or sensitive tool na
  assert.equal(pluginForTool('desktop_click'),'dsh-desktop-tools');
  assert.equal(pluginForTool('memory_search'),'dsh-memory-dreaming');
  assert.equal(pluginForTool('skill_workshop'),'dsh-skill-workshop');
- assert.equal(pluginForTool('status_health_check'),'dsh-status-cards');
+ assert.equal(pluginForTool('status_health_check'),null);
  assert.equal(pluginForTool('ask_secret_param_xxxxxxxxxxxx'),null);
 });
 

@@ -17,7 +17,7 @@ const OWNED_TOOLS=new Map([
  ...['browser_navigate','browser_snapshot','browser_click','browser_type','browser_screenshot'].map(x=>[x,'dsh-browser-tools']),
  ...['desktop_windows','desktop_snapshot','desktop_screenshot','desktop_click','desktop_type'].map(x=>[x,'dsh-desktop-tools']),
  ...['memory_dream','memory_search','memory_topics'].map(x=>[x,'dsh-memory-dreaming']),
- ['skill_workshop','dsh-skill-workshop'],['status_health_check','dsh-status-cards']
+ ['skill_workshop','dsh-skill-workshop']
 ]);
 export function pluginForTool(value){
   return typeof value==='string'?OWNED_TOOLS.get(value)??null:null;
