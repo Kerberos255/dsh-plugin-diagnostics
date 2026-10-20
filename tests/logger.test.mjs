@@ -10,13 +10,16 @@ test('metadata only; never write payloads, tokens, user data or exception messag
   code:'50035',durationMs:3250,tool:'browser_click',
   text:'PRIVATE_TEXT',token:'PRIVATE_TOKEN',url:'https://example.invalid/private',
   error:new Error('PRIVATE_ERROR'),userId:'PRIVATE_USER',response:{secret:'PRIVATE_VALUE'},
+  runtimeVersion:'0.2.1-rc.2',testedRuntime:'PRIVATE_VERSION',
   state:'failed'
  });
  const text=JSON.stringify(event);
  assert.equal(event.code,'50035');
  assert.equal(event.durationMs,3250);
  assert.equal(event.state,'failed');
- for(const secret of ['PRIVATE_TEXT','PRIVATE_TOKEN','PRIVATE_USER','PRIVATE_ERROR','PRIVATE_VALUE','example.invalid'])assert(!text.includes(secret));
+ assert.equal(event.runtimeVersion,'0.2.1-rc.2');
+ assert.equal(event.testedRuntime,undefined);
+ for(const secret of ['PRIVATE_TEXT','PRIVATE_TOKEN','PRIVATE_USER','PRIVATE_ERROR','PRIVATE_VALUE','PRIVATE_VERSION','example.invalid'])assert(!text.includes(secret));
  assert.equal(makeRecord('dsh-channel-core','error','card.failed',{code:'bad string with secret'}).code,undefined);
  assert.equal(makeRecord('../outside','info','bad'),null);
  assert.equal(makeRecord('dsh-channel-core','info','unsafe/path'),null);
