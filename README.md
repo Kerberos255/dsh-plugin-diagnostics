@@ -32,3 +32,7 @@ Check whether the plugin and its dependencies loaded before expecting new logs. 
 Review [SECURITY.md](SECURITY.md) before sharing logs; even allowlisted metadata may reveal operational timing. Run `npm test` for portable logger tests. Packaging can be checked with `npm pack --dry-run`; compatibility with a real DSH host must be tested separately.
 
 MIT licensed. See [LICENSE](LICENSE).
+
+## LCM performance counters (0.1.7)
+
+For `dsh-lossless-context` only, the diagnostic allowlist includes bounded numeric stage timings, leaf and merged-summary counts, model-call totals, cache hits, and concurrency. It does not record the model output, original conversation, prompts or credentials.

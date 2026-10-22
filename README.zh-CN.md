@@ -32,3 +32,7 @@ dsh plugin --profile desktop add github:Kerberos255/dsh-plugin-diagnostics
 分享日志前请先阅读 [安全说明](SECURITY.md)，运行元数据仍可能暴露操作时间。使用 `npm test` 验证便携逻辑，`npm pack --dry-run` 检查打包；真实宿主兼容性仍需另行测试。
 
 许可证：[MIT](LICENSE)。
+
+## LCM 性能计数（0.1.7）
+
+针对 `dsh-lossless-context`，安全白名单新增阶段耗时、叶摘要和合并摘要数量、模型调用次数、缓存命中以及并发数等数值指标。不记录摘要正文、会话原文、提示词或凭证。

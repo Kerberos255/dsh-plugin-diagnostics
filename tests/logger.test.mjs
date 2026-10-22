@@ -63,3 +63,18 @@ test('logger failures never block user operations',async()=>{
  await logger.close();
  assert.equal(logger.closed,true);
 });
+
+test('LCM logs numeric performance counters but never the model text',()=>{
+ const row=makeRecord('dsh-lossless-context','info','compression.completed',{
+  durationMs:307027,prepareMs:4,leafCount:11,branchCount:3,modelCalls:14,modelMs:306911,cacheHits:0,
+  kind:'leaf',cacheHit:false,inputMessages:500,concurrency:3,
+  summary:'SENSITIVE',sessionId:'PRIVATE',provider:'secret/model',error:'DO_NOT_LOG'
+ });
+ assert.equal(row.modelCalls,14);
+ assert.equal(row.concurrency,3);
+ assert.equal(row.cacheHits,0);
+ assert.equal(row.cacheHit,false);
+ assert(!JSON.stringify(row).includes('SENSITIVE'));
+ assert(!JSON.stringify(row).includes('PRIVATE'));
+ assert(!JSON.stringify(row).includes('DO_NOT_LOG'));
+});

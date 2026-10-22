@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-diagnostics",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "type": "module",
   "description": "Privacy-restricted JSONL lifecycle and failure diagnostics for DeepSeek Harness plugins.",
   "main": "./index.js",

@@ -31,6 +31,13 @@ export function makeRecord(plugin,level,event,details={},now=new Date()){
   for(const name of ['durationMs','count','sizeBytes']){
     const n=safeNumber(details[name]);if(n!==undefined)record[name]=n;
   }
+  if(plugin==='dsh-lossless-context'){
+    for(const name of ['prepareMs','leafCount','branchCount','modelCalls','modelMs','cacheHits','warmHits','inputMessages','prepared','concurrency']){
+      const n=safeNumber(details[name]);if(n!==undefined)record[name]=n;
+    }
+    if(details.kind==='leaf'||details.kind==='condensed')record.kind=details.kind;
+    if(typeof details.cacheHit==='boolean')record.cacheHit=details.cacheHit;
+  }
   if(SAFE_CODE.test(details.code??''))record.code=details.code;
   for(const name of ['runtimeVersion','testedRuntime'])if(VERSION.test(details[name]??''))record[name]=details[name];
   if(pluginForTool(details.tool)===plugin)record.tool=details.tool;
