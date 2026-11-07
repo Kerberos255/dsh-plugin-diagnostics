@@ -25,6 +25,22 @@ test('metadata only; never write payloads, tokens, user data or exception messag
  assert.equal(makeRecord('dsh-channel-core','info','unsafe/path'),null);
 });
 
+test('enumerated interaction diagnostics keep safe fields and reject arbitrary values',()=>{
+  const record=makeRecord('dsh-channel-core','warn','interaction.failed',{
+    reason:'token-expired',stage:'settle',ageSeconds:45,questionVersion:3,
+    token:'private-token-example',error:'private-exception-example',
+  });
+  assert.equal(record.reason,'token-expired');
+  assert.equal(record.stage,'settle');
+  assert.equal(record.ageSeconds,45);
+  assert.equal(record.questionVersion,3);
+  assert(!JSON.stringify(record).includes('private-'));
+  const invalid=makeRecord('dsh-channel-core','error','interaction.failed',{
+    reason:'secret=value',stage:'unsafe/external',ageSeconds:-1,questionVersion:1.5,
+  });
+  for(const field of ['reason','stage','ageSeconds','questionVersion'])assert.equal(invalid[field],undefined);
+});
+
 test('tool attribution is deterministic and ignores unknown or sensitive tool names',()=>{
  assert.equal(pluginForTool('browser_snapshot'),'dsh-browser-tools');
  assert.equal(pluginForTool('desktop_click'),'dsh-desktop-tools');

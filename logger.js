@@ -11,6 +11,14 @@ const TOOL=/^[a-z][a-z0-9_-]{0,60}$/;
 const VERSION=/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 const SAFE_CODE=/^(?:[0-9]{3,6}|[A-Z][A-Z0-9_]{1,31}|[a-z]+(?:-[a-z]+){0,2})$/;
 const values=new Set(['ok','failed','cancelled','disabled','active','closed','timeout','running','completed','unknown','interrupted','pending','skipped']);
+// Enumerated interaction failure reasons. Never accept arbitrary strings here:
+// a reason is a fixed code path, not free-form text from a channel or a model.
+const REASONS=new Set([
+  'token-absent','token-consumed','token-expired',
+  'pending-absent','pending-done','request-aborted',
+  'empty-message-id','send-failed',
+]);
+const STAGES=new Set(['publish','update','retire','answer','settle']);
 const safeNumber=x=>typeof x==='number'&&Number.isFinite(x)?Math.max(0,Math.min(86400000,Math.round(x))):undefined;
 
 const OWNED_TOOLS=new Map([
@@ -30,6 +38,16 @@ export function makeRecord(plugin,level,event,details={},now=new Date()){
   // response bodies, user text, identifiers, stack traces or objects.
   for(const name of ['durationMs','count','sizeBytes']){
     const n=safeNumber(details[name]);if(n!==undefined)record[name]=n;
+  }
+  // Interaction diagnostics: enumerated reason/stage plus bounded counters.
+  // These are what made the 2026-10-23 Feishu Ask User failure unprovable.
+  if(REASONS.has(details.reason))record.reason=details.reason;
+  if(STAGES.has(details.stage))record.stage=details.stage;
+  for(const name of ['ageSeconds','questionVersion']){
+    const v=details[name];
+    // Non-negative safe integers only: a negative value must not be clamped to
+    // a plausible-looking 0, which would fabricate a fake version/reason.
+    if(typeof v==='number'&&Number.isSafeInteger(v)&&v>=0&&v<=86400000)record[name]=v;
   }
   if(plugin==='dsh-lossless-context'){
     for(const name of ['prepareMs','leafCount','branchCount','modelCalls','modelMs','cacheHits','warmHits','inputMessages','prepared','concurrency']){
