@@ -13,7 +13,7 @@
     "logger.js",
     "cordis.patch.yml",
     "README.md",
-    "README.zh-CN.md",
+    "README.en.md",
     "compatibility.js"
   ],
   "dsh": {
