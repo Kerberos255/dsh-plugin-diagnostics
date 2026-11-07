@@ -2,37 +2,35 @@
 
 [简体中文](README.zh-CN.md) · [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) · [Security](SECURITY.md)
 
-An **optional, privacy-restricted JSONL diagnostics service** for DSH plugins. It helps troubleshoot plugin startup, supported tool outcomes, scheduled-job changes and bounded failure metadata without collecting conversation text or credentials.
+Optional **privacy-restricted JSONL diagnostics** for supported DSH plugins, useful for investigating startup, tool outcomes and scheduled workflows.
 
-## What it records
+## Recorded data
 
-- Lifecycle events for supported plugins, including startup and stop.
-- Allowlisted event names and metadata such as status, duration, safe error codes and recognized plugin tool names.
-- Errors that supported plugins explicitly report through `pluginDiagnostics.record(...)`.
-- A schedule-change notification, but **not** the schedule contents or task instructions.
+- Supported plugin lifecycle events and allowlisted metadata such as status, duration and safe error codes.
+- Schedule-change notifications (**not** task instructions or content).
+- Bounded LCM performance counters such as summary counts, model calls, cache hits and stage timings.
 
-It does **not** log user messages, submitted answers, prompts, model responses, tool arguments, HTTP bodies, tokens, secret values, arbitrary stack traces or user identities. Plugins that do not emit diagnostics remain functional.
+**Never recorded:** user messages, prompts, model responses, tool arguments, HTTP bodies, credentials or arbitrary exception stacks. Other plugins can run without the diagnostics service.
 
-## Installation and logs
-
-Requires a compatible DSH host with the peer services declared in [package.json](package.json). Install into the profile that hosts your plugins (for example, `desktop`):
+## Install and inspect
 
 ```sh
 dsh plugin --profile desktop add github:Kerberos255/dsh-plugin-diagnostics
 ```
 
-Restart the host after changing plugin code. Other supported plugins detect the `pluginDiagnostics` service when present; there is **no separate dashboard or mandatory settings page**.
+Replace `desktop` with your profile and restart DSH after installation or updates. Supported plugins emit diagnostics when the service is present; **there is no separate dashboard**.
 
-Log directory: `DSH_HOME/plugin-diagnostics/logs/<plugin-name>/YYYY-MM-DD.N.jsonl`. Files are limited to **two 1 MiB parts per plugin per day**; entries older than **14 days** are periodically removed. Full or unwritable log destinations silently drop diagnostic entries instead of blocking user tasks.
+Log directory:
 
-## Troubleshooting and limitations
+```text
+DSH_HOME/plugin-diagnostics/logs/<plugin-name>/YYYY-MM-DD.N.jsonl
+```
 
-Check whether the plugin and its dependencies loaded before expecting new logs. A previous-failures count is historical, **not** evidence that every count was a new error. Diagnostics are deliberately sparse; they cannot reconstruct a session, explain arbitrary model behavior, or replace live host/platform tests.
+Each plugin is limited to two **1 MiB** files per day. Entries older than **14 days** are periodically removed. No events or an unwritable destination may mean no log file is created; normal tasks are not blocked.
 
-Review [SECURITY.md](SECURITY.md) before sharing logs; even allowlisted metadata may reveal operational timing. Run `npm test` for portable logger tests. Packaging can be checked with `npm pack --dry-run`; compatibility with a real DSH host must be tested separately.
+## Notes
 
-MIT licensed. See [LICENSE](LICENSE).
+- Logs cannot reconstruct conversations or replace real host/platform tests. A historical failure count does not necessarily indicate a new failure.
+- Even restricted metadata can reveal operational timing; review [SECURITY.md](SECURITY.md) before sharing logs.
 
-## LCM performance counters (0.1.7)
-
-For `dsh-lossless-context` only, the diagnostic allowlist includes bounded numeric stage timings, leaf and merged-summary counts, model-call totals, cache hits, and concurrency. It does not record the model output, original conversation, prompts or credentials.
+Tests: `npm test`. License: [MIT](LICENSE).
